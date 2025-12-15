@@ -1,9 +1,11 @@
 [project]
-name = "ail12s7"
+name = "ail123s7"
 version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
     "numpy>=2.2.6",
     "opencv-python>=4.12.0.88",
+    "pillow>=12.0.0",
     "pyside6>=6.10.1",
+    "pytesseract>=0.3.13",
 ]
