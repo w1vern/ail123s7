@@ -1,7 +1,17 @@
+
 import sys
-from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
-                               QHBoxLayout, QPushButton, QLabel, QTextEdit,
-                               QFileDialog, QMessageBox)
+from PySide6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QPushButton,
+    QLabel,
+    QTextEdit,
+    QFileDialog,
+    QMessageBox
+)
 from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtCore import Qt
 import pytesseract
@@ -55,13 +65,6 @@ class OCRApp(QMainWindow):
 
         self.image_display = QLabel()
         self.image_display.setAlignment(Qt.AlignCenter)
-        # self.image_display.setStyleSheet("""
-        #     QLabel {
-        #         border: 2px solid #ccc;
-        #         background-color: #f9f9f9;
-        #         min-height: 400px;
-        #     }
-        # """)
         self.image_display.setText('Изображение не загружено')
         image_layout.addWidget(self.image_display)
 
@@ -75,13 +78,6 @@ class OCRApp(QMainWindow):
         self.text_display = QTextEdit()
         self.text_display.setFont(QFont('Arial', 10))
         self.text_display.setReadOnly(True)
-        # self.text_display.setStyleSheet("""
-        #     QTextEdit {
-        #         border: 2px solid #ccc;
-        #         background-color: #ffffff;
-        #         padding: 10px;
-        #     }
-        # """)
         self.text_display.setPlaceholderText(
             'Текст появится здесь после распознавания...')
         text_layout.addWidget(self.text_display)

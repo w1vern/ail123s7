@@ -1,26 +1,37 @@
+
 import sys
 import cv2
 import numpy as np
-from PySide6.QtWidgets import (QApplication, QMainWindow, QLabel, QPushButton, 
-                               QVBoxLayout, QHBoxLayout, QWidget, QFileDialog, QMessageBox)
+from PySide6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QHBoxLayout,
+    QWidget,
+    QFileDialog,
+    QMessageBox
+)
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtCore import QTimer, Qt
 
+
 class FeatureMatchingApp(QMainWindow):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("SIFT Object Detector (OpenCV + PySide6)")
         self.resize(1000, 700)
 
         self.sift = cv2.SIFT_create()
         self.reference_image = None
-        self.ref_kp = None  
+        self.ref_kp = None
         self.ref_des = None
-        
-        self.cap = None 
+
+        self.cap = None
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
-        
+
         FLANN_INDEX_KDTREE = 1
         index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
         search_params = dict(checks=50)
@@ -28,16 +39,16 @@ class FeatureMatchingApp(QMainWindow):
 
         self.init_ui()
 
-    def init_ui(self):
+    def init_ui(self) -> None:
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
         layout = QVBoxLayout()
 
         btn_layout = QHBoxLayout()
-        
+
         self.btn_load_ref = QPushButton("1. Загрузить эталон (Картинка)")
         self.btn_load_ref.clicked.connect(self.load_reference_image)
-        
+
         self.btn_video_file = QPushButton("2. Открыть видео файл")
         self.btn_video_file.clicked.connect(self.open_video_file)
 
@@ -53,21 +64,25 @@ class FeatureMatchingApp(QMainWindow):
         btn_layout.addWidget(self.btn_camera)
         btn_layout.addWidget(self.btn_stop)
 
-        self.image_label = QLabel("Загрузите эталонное изображение, затем выберите источник видео.")
+        self.image_label = QLabel(
+            "Загрузите эталонное изображение, затем выберите источник видео.")
         self.image_label.setAlignment(Qt.AlignCenter)
-        self.image_label.setStyleSheet("border: 2px dashed gray; background-color: #f0f0f0;")
+        self.image_label.setStyleSheet(
+            "border: 2px dashed gray; background-color: #f0f0f0;")
         self.image_label.setScaledContents(True)
 
         layout.addLayout(btn_layout)
         layout.addWidget(self.image_label)
         main_widget.setLayout(layout)
 
-    def load_reference_image(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Выберите изображение объекта", "", "Images (*.png *.jpg *.jpeg *.bmp)")
+    def load_reference_image(self) -> None:
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "Выберите изображение объекта", "", "Images (*.png *.jpg *.jpeg *.bmp)")
         if file_path:
             img = cv2.imread(file_path)
             if img is None:
-                QMessageBox.critical(self, "Ошибка", "Не удалось загрузить изображение.")
+                QMessageBox.critical(
+                    self, "Ошибка", "Не удалось загрузить изображение.")
                 return
 
             h, w, c = img.shape
@@ -76,13 +91,16 @@ class FeatureMatchingApp(QMainWindow):
                 img = cv2.resize(img, (int(w * scale), int(h * scale)))
 
             self.reference_image = img
-            self.ref_kp, self.ref_des = self.sift.detectAndCompute(self.reference_image, None)
-            
-            self.image_label.setText(f"Эталон загружен.\nНайдено точек: {len(self.ref_kp)}\nТеперь выберите видео.")
-            
-    def start_camera(self):
+            self.ref_kp, self.ref_des = self.sift.detectAndCompute(
+                self.reference_image, None)
+
+            self.image_label.setText(
+                f"Эталон загружен.\nНайдено точек: {len(self.ref_kp)}\nТеперь выберите видео.")
+
+    def start_camera(self) -> None:
         if self.reference_image is None:
-            QMessageBox.warning(self, "Внимание", "Сначала загрузите изображение-эталон!")
+            QMessageBox.warning(
+                self, "Внимание", "Сначала загрузите изображение-эталон!")
             return
         self.stop_video()
         self.cap = cv2.VideoCapture(0)
@@ -91,27 +109,30 @@ class FeatureMatchingApp(QMainWindow):
             return
         self.timer.start(30)
 
-    def open_video_file(self):
+    def open_video_file(self) -> None:
         if self.reference_image is None:
-            QMessageBox.warning(self, "Внимание", "Сначала загрузите изображение-эталон!")
+            QMessageBox.warning(
+                self, "Внимание", "Сначала загрузите изображение-эталон!")
             return
-        file_path, _ = QFileDialog.getOpenFileName(self, "Выберите видео", "", "Video Files (*.mp4 *.avi *.mkv *.mov)")
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "Выберите видео", "", "Video Files (*.mp4 *.avi *.mkv *.mov)")
         if file_path:
             self.stop_video()
             self.cap = cv2.VideoCapture(file_path)
             if not self.cap.isOpened():
-                QMessageBox.critical(self, "Ошибка", "Не удалось открыть видеофайл.")
+                QMessageBox.critical(
+                    self, "Ошибка", "Не удалось открыть видеофайл.")
                 return
             self.timer.start(30)
 
-    def stop_video(self):
+    def stop_video(self) -> None:
         self.timer.stop()
         if self.cap:
             self.cap.release()
             self.cap = None
         self.image_label.setText("Видео остановлено.")
 
-    def update_frame(self):
+    def update_frame(self) -> None:
         ret, frame = self.cap.read()
         if not ret:
             self.stop_video()
@@ -140,20 +161,24 @@ class FeatureMatchingApp(QMainWindow):
 
         MIN_MATCH_COUNT = 10
         final_img = None
-        
+
         if len(good_matches) > MIN_MATCH_COUNT:
-            src_pts = np.float32([self.ref_kp[m.queryIdx].pt for m in good_matches]).reshape(-1, 1, 2)
-            dst_pts = np.float32([kp_frame[m.trainIdx].pt for m in good_matches]).reshape(-1, 1, 2)
+            src_pts = np.float32(
+                [self.ref_kp[m.queryIdx].pt for m in good_matches]).reshape(-1, 1, 2)
+            dst_pts = np.float32(
+                [kp_frame[m.trainIdx].pt for m in good_matches]).reshape(-1, 1, 2)
 
             M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
-            
+
             if M is not None:
                 h_ref, w_ref, c = self.reference_image.shape
-                pts = np.float32([[0, 0], [0, h_ref - 1], [w_ref - 1, h_ref - 1], [w_ref - 1, 0]]).reshape(-1, 1, 2)
-                
+                pts = np.float32(
+                    [[0, 0], [0, h_ref - 1], [w_ref - 1, h_ref - 1], [w_ref - 1, 0]]).reshape(-1, 1, 2)
+
                 dst = cv2.perspectiveTransform(pts, M)
 
-                frame = cv2.polylines(frame, [np.int32(dst)], True, (0, 255, 0), 3, cv2.LINE_AA)
+                frame = cv2.polylines(
+                    frame, [np.int32(dst)], True, (0, 255, 0), 3, cv2.LINE_AA)
 
         final_img = cv2.drawMatches(
             self.reference_image, self.ref_kp,
@@ -166,18 +191,20 @@ class FeatureMatchingApp(QMainWindow):
 
         self.display_image(final_img)
 
-    def display_image(self, img):
+    def display_image(self, img) -> None:
         """Конвертация OpenCV BGR -> Qt Pixmap и вывод на экран"""
         if len(img.shape) == 3:
             h, w, ch = img.shape
             bytes_per_line = ch * w
             rgb_image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            qt_image = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
+            qt_image = QImage(rgb_image.data, w, h,
+                              bytes_per_line, QImage.Format_RGB888)
         else:
             h, w = img.shape
             qt_image = QImage(img.data, w, h, w, QImage.Format_Grayscale8)
 
         self.image_label.setPixmap(QPixmap.fromImage(qt_image))
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
